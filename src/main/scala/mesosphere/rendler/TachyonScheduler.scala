@@ -4,6 +4,7 @@ import org.apache.mesos
 import mesos._
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import java.net.URL
 
 class TachyonScheduler(
@@ -14,6 +15,7 @@ class TachyonScheduler(
 
   private[this] var tasksCreated = 0
   private[this] var tasksRunning = 0
+  private[this] val workers = mutable.Set[String]()
 
   def disconnected(driver: SchedulerDriver): Unit =
     println("Disconnected from the Mesos master...")
@@ -60,6 +62,17 @@ class TachyonScheduler(
 
     for (offer <- offers.asScala) {
       println(s"Got resource offer [$offer]")
+
+      val tasks = mutable.Buffer[Protos.TaskInfo]()
+      if (!workers.contains(offer.getHostname())) {
+        tasks += makeTachyonTask(s"$tasksCreated", true, offer)
+        tasksCreated = tasksCreated + 1
+        workers += offer.getHostname()
+        driver.launchTasks(Seq(offer.getId).asJava, tasks.asJava)
+      }
+      else {
+        driver.declineOffer(offer.getId)
+      }
     }
   }
 

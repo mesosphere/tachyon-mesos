@@ -41,13 +41,14 @@ trait TaskUtils {
 
   lazy val tachyonFormatAndRunLocal: Protos.CommandInfo =
     Protos.CommandInfo.newBuilder
-      .setValue("./bin/tachyon format && ./bin/tachyon-start.sh local")
+      .setValue("./bin/tachyon format && ./bin/tachyon-start.sh worker Mount")
       .setEnvironment(tachyonEnvironment)
       .build
 
   lazy val tachyonRunLocal: Protos.CommandInfo =
     Protos.CommandInfo.newBuilder
-      .setValue("./bin/tachyon-start.sh local")
+      .setValue("./bin/tachyon-start.sh worker Mount")
+      .setEnvironment(tachyonEnvironment)
       .build
 
   def makeTaskPrototype(id: String, offer: Protos.Offer): Protos.TaskInfo =
