@@ -8,11 +8,30 @@ import java.net.URL
 trait TaskUtils {
 
   def tachyonUrl(): URL
+  def zookeeperAddress(): String
 
   val TASK_CPUS = 1.0
   val TASK_MEM = 256.0
 
-  protected[this] val TachyonUris: Seq[Protos.CommandInfo.URI] =
+  protected[this] val tachyonJavaOpts: Seq[String] = Seq(
+    "-Dtachyon.usezookeeper=true",
+    s"-Dtachyon.zookeeper.address=$zookeeperAddress"
+  )
+
+  protected[this] val tachyonEnvironment: Protos.Environment = {
+    val vars: Map[String, String] =
+      Map("TACHYON_JAVA_OPTS" -> tachyonJavaOpts.mkString(" "))
+
+    val builder = Protos.Environment.newBuilder
+    for ((key, value) <- vars) {
+      val variable =
+        Protos.Environment.Variable.newBuilder.setName(key).setValue(value)
+      builder.addVariables(variable)
+    }
+    builder.build
+  }
+
+  protected[this] val tachyonUris: Seq[Protos.CommandInfo.URI] =
     Seq(tachyonUrl.toString).map { url =>
       Protos.CommandInfo.URI.newBuilder
         .setValue(url)
@@ -23,6 +42,7 @@ trait TaskUtils {
   lazy val tachyonFormatAndRunLocal: Protos.CommandInfo =
     Protos.CommandInfo.newBuilder
       .setValue("./bin/tachyon format && ./bin/tachyon-start.sh local")
+      .setEnvironment(tachyonEnvironment)
       .build
 
   lazy val tachyonRunLocal: Protos.CommandInfo =

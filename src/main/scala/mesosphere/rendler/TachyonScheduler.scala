@@ -6,7 +6,9 @@ import mesos._
 import scala.collection.JavaConverters._
 import java.net.URL
 
-class TachyonScheduler(val tachyonUrl: URL)
+class TachyonScheduler(
+  val tachyonUrl: URL,
+  val zookeeperAddress: String)
     extends mesos.Scheduler
     with TaskUtils {
 

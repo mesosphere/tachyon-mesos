@@ -20,7 +20,7 @@ object TachyonMesos {
   def printUsage(): Unit = {
     println("""
       |Usage:
-      |  run <tachyon-url> <mesos-master>
+      |  run <tachyon-url> <mesos-master> <zookeeperAddress>
     """.stripMargin)
   }
 
@@ -31,19 +31,20 @@ object TachyonMesos {
       sys.exit(1)
     }
 
-    val Seq(tachyonUrlString, mesosMaster) = args.toSeq
+    val Seq(tachyonUrlString, mesosMaster, zookeeperAddress) = args.toSeq
     val tachyonUrl = new java.net.URL(tachyonUrlString)
 
     println(s"""
       |Tachyon-Mesos
       |=============
       |
-      |tachyonUrl: [$tachyonUrl]
-      |mesosMaster: [$mesosMaster]
+      |tachyonUrl:       [$tachyonUrl]
+      |mesosMaster:      [$mesosMaster]
+      |zookeeperAddress: [$zookeeperAddress]
       |
     """.stripMargin)
 
-    val scheduler = new TachyonScheduler(tachyonUrl)
+    val scheduler = new TachyonScheduler(tachyonUrl, zookeeperAddress)
 
     val driver: SchedulerDriver =
       new MesosSchedulerDriver(scheduler, frameworkInfo, mesosMaster)
