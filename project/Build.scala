@@ -1,6 +1,8 @@
 import sbt._
 import Keys._
 
+import sbtassembly.Plugin._
+import AssemblyKeys._
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 
@@ -19,7 +21,8 @@ object TachyonBuild extends Build {
 // DEPENDENCY VERSIONS
 //////////////////////////////////////////////////////////////////////////////
 
-  val MESOS_VERSION     = "0.20.0-rc2"
+  val MESOS_VERSION   = "0.20.0-rc2"
+  val TACHYON_VERSION = "0.5.0"
 
 //////////////////////////////////////////////////////////////////////////////
 // NATIVE LIBRARY PATHS
@@ -42,6 +45,7 @@ object TachyonBuild extends Build {
 //////////////////////////////////////////////////////////////////////////////
 
   lazy val tachyonSettings = Project.defaultSettings ++
+                             assemblySettings ++
                              basicSettings ++
                              formatSettings
 
@@ -51,7 +55,8 @@ object TachyonBuild extends Build {
     scalaVersion := SCALA_VERSION,
 
     libraryDependencies ++= Seq(
-      "org.apache.mesos" % "mesos" % MESOS_VERSION
+      "org.apache.mesos"   % "mesos"          % MESOS_VERSION,
+      "org.tachyonproject" % "tachyon-client" % TACHYON_VERSION
     ),
 
     scalacOptions in Compile ++= Seq(
@@ -60,16 +65,27 @@ object TachyonBuild extends Build {
       "-feature"
     ),
 
-    javaOptions += "-Djava.library.path=%s:%s".format(
-      sys.props("java.library.path"),
-      pathToMesosLibs
+    javaOptions ++= Seq(
+      "-Djava.library.path=%s:%s".format(
+        sys.props("java.library.path"),
+        pathToMesosLibs
+      ),
+      "-Dtachyon.usezookeeper=true",
+      "-Dtachyon.zookeeper.address=localhost:2181" // TODO: this better!
     ),
 
     connectInput in run := true,
 
     fork in run := true,
 
-    fork in Test := true
+    fork in Test := true,
+
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
+      {
+        case PathList("org", "apache", "commons", xs @ _*) => MergeStrategy.first
+        case x => old(x)
+      }
+    }
   )
 
   lazy val formatSettings = scalariformSettings ++ Seq(

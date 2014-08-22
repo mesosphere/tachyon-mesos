@@ -1,11 +1,14 @@
 package mesosphere.tachyon
 
 import org.apache.mesos._
+import tachyon.conf.MasterConf
+import tachyon.master.TachyonMaster
+
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import java.io.File
+import java.net.{ InetSocketAddress, URL }
 
 object TachyonMesos {
 
@@ -24,6 +27,19 @@ object TachyonMesos {
     """.stripMargin)
   }
 
+  def startTachyonMaster(): Future[Unit] =
+    Future {
+      val conf = MasterConf.get
+      val master = new TachyonMaster(
+        new InetSocketAddress(conf.HOSTNAME, conf.PORT),
+        conf.WEB_PORT,
+        conf.SELECTOR_THREADS,
+        conf.QUEUE_SIZE_PER_SELECTOR,
+        conf.SERVER_THREADS
+      )
+      master.start
+    }
+
   def main(args: Array[String]): Unit = {
 
     if (args.length != 2) {
@@ -32,7 +48,7 @@ object TachyonMesos {
     }
 
     val Seq(tachyonUrlString, mesosMaster, zookeeperAddress) = args.toSeq
-    val tachyonUrl = new java.net.URL(tachyonUrlString)
+    val tachyonUrl = new URL(tachyonUrlString)
 
     println(s"""
       |Tachyon-Mesos
@@ -44,6 +60,10 @@ object TachyonMesos {
       |
     """.stripMargin)
 
+    println("Starting the Tachyon Master...")
+    startTachyonMaster()
+
+    println("Starting the Tachyon Scheduler...")
     val scheduler = new TachyonScheduler(tachyonUrl, zookeeperAddress)
 
     val driver: SchedulerDriver =
