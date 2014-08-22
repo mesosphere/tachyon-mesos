@@ -5,8 +5,11 @@
 ## Usage
 
 ```bash
-$ sbt "run {tachyonUrl} {mesosMaster}"
+$ sbt "run {tachyonUrl} {mesosMaster} {zookeeperAddress}"
 ```
+
+Where `mesosMaster` is of the same form that the `mesos-slave` program accepts
+and where `zookeeperAddress` is of the form `host:port`.
 
 ## Design
 
