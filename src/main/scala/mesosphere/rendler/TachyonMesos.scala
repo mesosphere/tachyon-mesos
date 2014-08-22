@@ -42,7 +42,7 @@ object TachyonMesos {
 
   def main(args: Array[String]): Unit = {
 
-    if (args.length != 2) {
+    if (args.length != 3) {
       printUsage()
       sys.exit(1)
     }
