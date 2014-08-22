@@ -71,7 +71,9 @@ object TachyonBuild extends Build {
         pathToMesosLibs
       ),
       "-Dtachyon.usezookeeper=true",
-      "-Dtachyon.zookeeper.address=localhost:2181" // TODO: this better!
+      "-Dtachyon.zookeeper.address=localhost:2181", // TODO: this better!
+      "-Dtachyon.home=/tmp/tachyon",
+      "-Dtachyon.master.journal.folder=file:///tmp/tachyon-journal"
     ),
 
     connectInput in run := true,
