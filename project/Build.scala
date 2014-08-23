@@ -55,8 +55,8 @@ object TachyonBuild extends Build {
     scalaVersion := SCALA_VERSION,
 
     libraryDependencies ++= Seq(
-      "org.apache.mesos"   % "mesos"          % MESOS_VERSION,
-      "org.tachyonproject" % "tachyon-client" % TACHYON_VERSION
+      "org.apache.mesos"   % "mesos"        % MESOS_VERSION,
+      "org.tachyonproject" % "tachyon" % TACHYON_VERSION
     ),
 
     scalacOptions in Compile ++= Seq(
@@ -72,8 +72,7 @@ object TachyonBuild extends Build {
       ),
       "-Dtachyon.usezookeeper=true",
       "-Dtachyon.zookeeper.address=localhost:2181", // TODO: this better!
-      "-Dtachyon.home=/tmp/tachyon",
-      "-Dtachyon.master.journal.folder=file:///tmp/tachyon-journal"
+      "-Dtachyon.home=/home/vagrant/tachyon-0.5.0"
     ),
 
     connectInput in run := true,
@@ -82,12 +81,10 @@ object TachyonBuild extends Build {
 
     fork in Test := true,
 
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
-      {
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) { old => {
         case PathList("org", "apache", "commons", xs @ _*) => MergeStrategy.first
         case x => old(x)
-      }
-    }
+    }}
   )
 
   lazy val formatSettings = scalariformSettings ++ Seq(

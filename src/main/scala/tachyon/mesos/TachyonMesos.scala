@@ -1,8 +1,10 @@
-package mesosphere.tachyon
+package tachyon.mesos
 
 import org.apache.mesos._
-import tachyon.conf.MasterConf
+import tachyon.conf.{ CommonConf, MasterConf }
+import tachyon.UnderFileSystem
 import tachyon.master.TachyonMaster
+import tachyon.util.CommonUtils
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -27,18 +29,44 @@ object TachyonMesos {
     """.stripMargin)
   }
 
-  def startTachyonMaster(): Future[Unit] =
-    Future {
-      val conf = MasterConf.get
-      val master = new TachyonMaster(
-        new InetSocketAddress(conf.HOSTNAME, conf.PORT),
-        conf.WEB_PORT,
-        conf.SELECTOR_THREADS,
-        conf.QUEUE_SIZE_PER_SELECTOR,
-        conf.SERVER_THREADS
-      )
-      master.start
+  def startTachyonMaster(): Future[Unit] = {
+    val journal = MasterConf.get.JOURNAL_FOLDER
+    val name = "JOURNAL_FOLDER"
+    println(s"Formatting [$name]: [$journal]")
+
+    val ufs: Option[UnderFileSystem] = {
+      val fs = UnderFileSystem.get(journal)
+      if (fs.exists(journal) && !fs.delete(journal, true)) {
+        println(s"Failed to remove [$name]: $journal");
+        None
+      }
+      else if (!fs.mkdirs(journal, true)) {
+        println(s"Failed to create [$name]: $journal");
+        None
+      }
+      else {
+        val prefix = MasterConf.get.FORMAT_FILE_PREFIX
+        val ts = System.currentTimeMillis
+        CommonUtils.touch(s"$journal$prefix$ts")
+        Some(fs)
+      }
     }
+
+    if (ufs.isEmpty) {
+      System.err.println(s"FATAL: Failed to create [$name]: $journal")
+      System.exit(1)
+    }
+
+    val conf = MasterConf.get
+    val master = new TachyonMaster(
+      new InetSocketAddress("0.0.0.0", conf.PORT), // Java DNS resolution is the devil's work
+      conf.WEB_PORT,
+      conf.SELECTOR_THREADS,
+      conf.QUEUE_SIZE_PER_SELECTOR,
+      conf.SERVER_THREADS
+    )
+    Future { master.start }
+  }
 
   def main(args: Array[String]): Unit = {
 

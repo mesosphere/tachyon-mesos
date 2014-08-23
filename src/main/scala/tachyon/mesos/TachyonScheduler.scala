@@ -1,4 +1,4 @@
-package mesosphere.tachyon
+package tachyon.mesos
 
 import org.apache.mesos
 import mesos._
