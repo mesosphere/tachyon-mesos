@@ -11,6 +11,12 @@ $ sbt "run {tachyonUrl} {mesosMaster} {zookeeperAddress}"
 Where `mesosMaster` is of the same form that the `mesos-slave` program accepts
 and where `zookeeperAddress` is of the form `host:port`.
 
+Alternatively, if developing within the vagrant VM:
+
+```bash
+$ bin/run-dev
+```
+
 ## Design
 
 ### Tachyon-Mesos Scheduler
