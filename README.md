@@ -2,6 +2,10 @@
 
 > _A Mesos Framework for Tachyon, a memory-centric distributed file system._
 
+## Word of Warning
+
+_This is the outcome of a brief hackathon, suitable only for fun and collaboration._
+
 ## Prerequisites
 
 - A Mesos cluster
